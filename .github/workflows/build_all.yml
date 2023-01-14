@@ -81,6 +81,79 @@ jobs:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
 
+    build_macos:
+        runs-on: macos-11
+
+        steps:
+        - uses: actions/checkout@v3
+        
+        - name: Create Build Environment
+          run: cmake -E make_directory ${{runner.workspace}}/build
+          
+        - name: Update brew repositories
+          run: brew update
+
+        - name: Fix stuff
+          run: rm -f /usr/local/bin/2to3* /usr/local/bin/idle3* /usr/local/bin/pydoc3* /usr/local/bin/python3* /usr/local/bin/python3-config* && brew reinstall gettext
+
+        - name: Install dependencies
+          run: brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd && pip3 install mako
+
+        - name: Install volk
+          run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
+        - name: Install SDRplay API
+          run: wget https://www.sdrplay.com/software/SDRplay_RSP_API-MacOSX-3.07.3.pkg && sudo installer -pkg SDRplay_RSP_API-MacOSX-3.07.3.pkg -target /
+
+        - name: Install libiio
+          run: git clone https://github.com/analogdevicesinc/libiio && cd libiio && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
+        - name: Install libad9361
+          run: git clone https://github.com/analogdevicesinc/libad9361-iio && cd libad9361-iio && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
+        - name: Install LimeSuite
+          run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
+        - name: Prepare CMake
+          working-directory: ${{runner.workspace}}/build
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
+
+        - name: Build
+          working-directory: ${{runner.workspace}}/build
+          run: make VERBOSE=1 -j3
+
+        - name: Create Archive
+          working-directory: ${{runner.workspace}}
+          run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
+
+        - name: Save Archive
+          uses: actions/upload-artifact@v3
+          with:
+              name: sdrpp_macos_intel
+              path: ${{runner.workspace}}/sdrpp_macos_intel.zip
+  
+    build_debian_buster:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v3
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v3
+          with:
+              name: sdrpp_debian_buster_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
     build_debian_bullseye:
         runs-on: ubuntu-latest
 
@@ -191,6 +264,33 @@ jobs:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
+    build_raspios_bullseye_armhf:
+        runs-on: ARM
+
+        steps:
+        - uses: actions/checkout@v3
+
+        - name: Create Build Environment
+          run: rm -rf ${{runner.workspace}}/build && cmake -E make_directory ${{runner.workspace}}/build
+        
+        - name: Prepare CMake
+          working-directory: ${{runner.workspace}}/build
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_USRP_SOURCE=ON
+
+        - name: Build
+          working-directory: ${{runner.workspace}}/build
+          run: make VERBOSE=1 -j3
+
+        - name: Create Dev Archive
+          working-directory: ${{runner.workspace}}
+          run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev' && mv sdrpp_debian_amd64.deb sdrpp_debian_armhf.deb
+        
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v3
+          with:
+              name: sdrpp_raspios_bullseye_armhf
+              path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
+
     build_android:
         runs-on: ubuntu-latest
 
@@ -199,7 +299,7 @@ jobs:
 
         - name: Fetch container
           working-directory: ${{runner.workspace}}
-          run: git clone https://github.com/Mr-Precise/android-sdr-kit
+          run: git clone https://github.com/AlexandreRouma/android-sdr-kit
         
         - name: Build container
           working-directory: ${{runner.workspace}}/android-sdr-kit
@@ -219,7 +319,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp.apk
 
     create_full_archive:
-        needs: ['build_windows', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_android']
+        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_raspios_bullseye_armhf', 'build_android']
         runs-on: ubuntu-latest
 
         steps:
@@ -230,10 +330,13 @@ jobs:
           run: >
             mkdir sdrpp_all && 
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
+            mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
+            mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
             mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
             mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
+            mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
         - uses: actions/upload-artifact@v3
