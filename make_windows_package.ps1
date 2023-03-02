@@ -17,6 +17,8 @@ cp 'C:/Program Files/PothosSDR/bin/airspy.dll' sdrpp_windows_x64/
 cp $build_dir/source_modules/airspyhf_source/Release/airspyhf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/airspyhf.dll' sdrpp_windows_x64/
 
+cp $build_dir/source_modules/audio_source/Release/audio_source.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/source_modules/bladerf_source/Release/bladerf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/bladeRF.dll' sdrpp_windows_x64/
 
@@ -75,6 +77,8 @@ cp $build_dir/misc_modules/discord_integration/Release/discord_integration.dll s
 cp $build_dir/misc_modules/frequency_manager/Release/frequency_manager.dll sdrpp_windows_x64/modules/
 
 cp $build_dir/misc_modules/recorder/Release/recorder.dll sdrpp_windows_x64/modules/
+
+cp $build_dir/misc_modules/rigctl_client/Release/rigctl_client.dll sdrpp_windows_x64/modules/
 
 cp $build_dir/misc_modules/rigctl_server/Release/rigctl_server.dll sdrpp_windows_x64/modules/
 
