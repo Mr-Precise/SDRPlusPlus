@@ -17,3 +17,6 @@ m17_decoder/libcorrect
 SDR++.app
 android/deps
 android/app/assets
+android/app/release/
+.cache
+compile_commands.json
