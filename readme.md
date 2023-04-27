@@ -1,5 +1,9 @@
 # SDR++, The bloat-free SDR software<br>
 
+* This is a **Fork** SDR++ for modified rtl-sdr library by [Mr-Precise/rtl-sdr](https://github.com/Mr-Precise/rtl-sdr)  
+* **Bugs from this fork should be reported** [**here**](https://github.com/Mr-Precise/SDRPlusPlus/issues), not to the original author.
+* Original author [**AlexandreRouma/SDRPlusPlus**](https://github.com/AlexandreRouma/SDRPlusPlus) 
+
 ![Screenshot](https://i.imgur.com/Ter2MQJ.png)
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
