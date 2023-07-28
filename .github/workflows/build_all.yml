@@ -138,8 +138,8 @@ jobs:
               name: sdrpp_macos_intel
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
 
-    build_macos12:
-        runs-on: macos-12
+    build_macos13:
+        runs-on: macos-13
 
         steps:
         - uses: actions/checkout@v3
@@ -184,13 +184,13 @@ jobs:
 
         - name: Create Archive
           working-directory: ${{runner.workspace}}
-          run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos12_intel.zip SDR++.app
+          run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos13_intel.zip SDR++.app
 
         - name: Save Archive
           uses: actions/upload-artifact@v3
           with:
-              name: sdrpp_macos12_intel
-              path: ${{runner.workspace}}/sdrpp_macos12_intel.zip
+              name: sdrpp_macos13_intel
+              path: ${{runner.workspace}}/sdrpp_macos13_intel.zip
   
     build_debian_buster:
         runs-on: ubuntu-latest
@@ -352,7 +352,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp.apk
 
     create_full_archive:
-        needs: ['build_windows', 'build_macos', 'build_macos12', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_android']
+        needs: ['build_windows', 'build_macos', 'build_macos13', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_android']
         runs-on: ubuntu-latest
 
         steps:
@@ -364,7 +364,7 @@ jobs:
             mkdir sdrpp_all && 
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
             mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
-            mv sdrpp_macos12_intel/sdrpp_macos12_intel.zip sdrpp_all/ && 
+            mv sdrpp_macos13_intel/sdrpp_macos13_intel.zip sdrpp_all/ && 
             mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
             mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
             mv sdrpp_debian_bookworm_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_amd64.deb && 
