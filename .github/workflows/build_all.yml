@@ -324,6 +324,33 @@ jobs:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
+    build_raspios_bullseye_arm64:
+        runs-on: arm64
+
+        steps:
+        - uses: actions/checkout@v3
+
+        - name: Create Build Environment
+          run: rm -rf ${{runner.workspace}}/build && cmake -E make_directory ${{runner.workspace}}/build
+        
+        - name: Prepare CMake
+          working-directory: ${{runner.workspace}}/build
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_USRP_SOURCE=ON -DOPT_BUILD_PERSEUS_SOURCE=ON
+
+        - name: Build
+          working-directory: ${{runner.workspace}}/build
+          run: make VERBOSE=1 -j3
+
+        - name: Create Dev Archive
+          working-directory: ${{runner.workspace}}
+          run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev' && mv sdrpp_debian_amd64.deb sdrpp_debian_arm64.deb
+        
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v3
+          with:
+              name: sdrpp_raspios_bullseye_arm64
+              path: ${{runner.workspace}}/sdrpp_debian_arm64.deb
+
     build_android:
         runs-on: ubuntu-latest
 
@@ -352,7 +379,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp.apk
 
     create_full_archive:
-        needs: ['build_windows', 'build_macos', 'build_macos13', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_android']
+        needs: ['build_windows', 'build_macos', 'build_macos13', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_raspios_bullseye_arm64', 'build_android']
         runs-on: ubuntu-latest
 
         steps:
@@ -371,6 +398,7 @@ jobs:
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
             mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
+            mv sdrpp_raspios_bullseye_arm64/sdrpp_debian_arm64.deb sdrpp_all/sdrpp_raspios_bullseye_arm64.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
         - uses: actions/upload-artifact@v3
@@ -381,14 +409,14 @@ jobs:
     update_nightly_release:
         needs: [create_full_archive]
         runs-on: ubuntu-latest
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/arm64' }}
 
         steps:
         - name: Download All Builds
           uses: actions/download-artifact@v3
 
         - name: Update Nightly
-          run: gh release upload nightly sdrpp_all/* -R ${{github.repository}} --clobber
+          run: gh release upload nightly-arm64 sdrpp_all/* -R ${{github.repository}} --clobber
 
     check_spelling:
         runs-on: ubuntu-latest
