@@ -409,6 +409,8 @@ namespace backend {
     };
 
     const std::vector<DevVIDPID> RTL_SDR_VIDPIDS = {
+        { 0x1209, 0x2838 },
+        { 0x1209, 0x2832 },
         { 0x0bda, 0x2832 },
         { 0x0bda, 0x2838 },
         { 0x0413, 0x6680 },
