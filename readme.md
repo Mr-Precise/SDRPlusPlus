@@ -19,7 +19,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Multi VFO
 * Wide hardware support (both through SoapySDR and dedicated modules)
 * SIMD accelerated DSP
-* Cross-platform (Windows, Linux, OSX and BSD)
+* Cross-platform (Windows, Linux, MacOS and BSD)
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 * Modular design (easily write your own plugins)
 
@@ -48,7 +48,7 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 Then, run:
 
 ```sh
-sudo apt install libfftw3-dev libglfw3-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
+sudo apt install libfftw3-dev libglfw3-dev libvolk2-dev libzstd-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
 sudo dpkg -i sdrpp_debian_amd64.deb
 ```
 
@@ -80,7 +80,7 @@ The preferred IDE is [VS Code](https://code.visualstudio.com/) in order to have 
 
 * [cmake](https://cmake.org)
 * [vcpkg](https://vcpkg.io)
-* [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs)
+* [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs. You have to install it in `C:/Program Files/PothosSDR`)
 * [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`)
 
 After this, install the following dependencies using vcpkg:
@@ -119,16 +119,16 @@ You will next need to edit the `root_dev/config.json` file to point to the modul
 From the top directory, you can simply run:
 
 ```bat
-./build/Release/sdrpp.exe -r root_dev -s
+./build/Release/sdrpp.exe -r root_dev -c
 ```
 
 Or, if you wish to run from the build directory e.g. `build/Release` and adapt the relative path to the `root_dev` folder:
 
 ```bat
-./sdrpp.exe -r ../../root_dev -s
+./sdrpp.exe -r ../../root_dev -c
 ```
 
-The optional `-s` argument is for keeping the console active in order to see the error messages.
+The optional `-c` argument is for keeping the console active in order to see the error messages.
 
 Because all the paths are relative, for the rest of the command line instructions we are going to assume you are running from the top directory using the former command.
 As mentioned previously you need to edit `root_dev/config.json` to add the modules that were built. From the default configuration file you need to add the paths in the `modules` section. Add to this list all the modules you wish to use.
@@ -338,7 +338,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | hackrf_source        | Working    | libhackrf         | OPT_BUILD_HACKRF_SOURCE        | ✅              | ✅                     | ✅                         |
 | hermes_source        | Beta       | -                 | OPT_BUILD_HERMES_SOURCE        | ✅              | ✅                     | ✅                         |
 | limesdr_source       | Working    | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE       | ⛔              | ✅                     | ✅                         |
-| perseus_source       | Beta       | libperseus-sdr    | OPT_BUILD_PERSEUS_SOURCE       | ⛔              | ⛔                     | ⛔                         |
+| perseus_source       | Beta       | libperseus-sdr    | OPT_BUILD_PERSEUS_SOURCE       | ⛔              | ✅                     | ✅                         |
 | plutosdr_source      | Working    | libiio, libad9361 | OPT_BUILD_PLUTOSDR_SOURCE      | ✅              | ✅                     | ✅                         |
 | rfspace_source       | Working    | -                 | OPT_BUILD_RFSPACE_SOURCE       | ✅              | ✅                     | ✅                         |
 | rtl_sdr_source       | Working    | librtlsdr         | OPT_BUILD_RTL_SDR_SOURCE       | ✅              | ✅                     | ✅                         |
@@ -371,6 +371,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | kgsstv_decoder      | Unfinished | -            | OPT_BUILD_KGSSTV_DECODER      | ⛔              | ⛔              | ⛔                         |
 | m17_decoder         | Beta       | -            | OPT_BUILD_M17_DECODER         | ⛔              | ✅              | ⛔                         |
 | meteor_demodulator  | Working    | -            | OPT_BUILD_METEOR_DEMODULATOR  | ✅              | ✅              | ⛔                         |
+| pager_decoder       | Unfinished | -            | OPT_BUILD_PAGER_DECODER       | ⛔              | ⛔              | ⛔                         |
 | radio               | Working    | -            | OPT_BUILD_RADIO               | ✅              | ✅              | ✅                         |
 | weather_sat_decoder | Unfinished | -            | OPT_BUILD_WEATHER_SAT_DECODER | ⛔              | ⛔              | ⛔                         |
 
