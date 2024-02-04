@@ -5,18 +5,19 @@
 #include <utils/event.h>
 
 #ifdef _WIN32
-#ifdef SDRPP_IS_CORE
-#define SDRPP_EXPORT extern "C" __declspec(dllexport)
+    #ifdef SDRPP_IS_CORE
+        #define SDRPP_EXPORT extern "C"
+    #else
+        #define SDRPP_EXPORT extern "C"
+    #endif
 #else
-#define SDRPP_EXPORT extern "C" __declspec(dllimport)
+    #define SDRPP_EXPORT extern
 #endif
-#else
-#define SDRPP_EXPORT extern
-#endif
+
 
 #ifdef _WIN32
 #include <Windows.h>
-#define MOD_EXPORT           extern "C" __declspec(dllexport)
+#define MOD_EXPORT           extern "C"
 #define SDRPP_MOD_EXTENTSION ".dll"
 #else
 #include <dlfcn.h>

@@ -21,7 +21,7 @@ elseif (ANDROID)
         /sdr-kit/${ANDROID_ABI}/lib/libusb1.0.so
         /sdr-kit/${ANDROID_ABI}/lib/libairspy.so
     )
-else (MSVC)
+else(MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(LIBAIRSPY REQUIRED libairspy)
@@ -35,4 +35,4 @@ else (MSVC)
         target_include_directories(airspy_source PRIVATE "/usr/local/include")
     endif()
 
-endif ()
+endif()
