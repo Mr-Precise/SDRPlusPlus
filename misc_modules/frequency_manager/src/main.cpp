@@ -131,7 +131,8 @@ private:
         ImGui::OpenPopup(id.c_str());
 
         char nameBuf[1024];
-        strcpy(nameBuf, editedBookmarkName.c_str());
+        std::strncpy(nameBuf, editedBookmarkName.c_str(), sizeof(nameBuf) - 1);
+        nameBuf[sizeof(nameBuf) - 1] = '\0';
 
         if (ImGui::BeginPopup(id.c_str(), ImGuiWindowFlags_NoResize)) {
             ImGui::BeginTable(("freq_manager_edit_table" + name).c_str(), 2);
@@ -202,7 +203,8 @@ private:
         ImGui::OpenPopup(id.c_str());
 
         char nameBuf[1024];
-        strcpy(nameBuf, editedListName.c_str());
+        std::strncpy(nameBuf, editedListName.c_str(), sizeof(nameBuf) - 1);
+        nameBuf[sizeof(nameBuf) - 1] = '\0';
 
         if (ImGui::BeginPopup(id.c_str(), ImGuiWindowFlags_NoResize)) {
             ImGui::LeftLabel("Name");
@@ -383,7 +385,8 @@ private:
             else {
                 char buf[64];
                 for (int i = 1; i < 1000; i++) {
-                    sprintf(buf, "New List (%d)", i);
+                    std::snprintf(buf, sizeof(buf), "New List (%d)", i);
+                    buf[sizeof(buf) - 1] = '\0';
                     if (std::find(_this->listNames.begin(), _this->listNames.end(), buf) == _this->listNames.end()) { break; }
                 }
                 _this->editedListName = buf;
@@ -450,7 +453,8 @@ private:
             else {
                 char buf[64];
                 for (int i = 1; i < 1000; i++) {
-                    sprintf(buf, "New Bookmark (%d)", i);
+                    std::snprintf(buf, sizeof(buf), "New Bookmark (%d)", i);
+                    buf[sizeof(buf) - 1] = '\0';
                     if (_this->bookmarks.find(buf) == _this->bookmarks.end()) { break; }
                 }
                 _this->editedBookmarkName = buf;
