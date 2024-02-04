@@ -50,6 +50,7 @@ option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependen
 # Misc
 option(OPT_BUILD_DISCORD_PRESENCE "Build the Discord Rich Presence module" ON)
 option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
+option(OPT_BUILD_IQ_EXPORTER "Build the IQ Exporter module" ON)
 option(OPT_BUILD_RECORDER "Audio and baseband recorder" ON)
 option(OPT_BUILD_RIGCTL_CLIENT "Rigctl client to make SDR++ act as a panadapter" ON)
 option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with software like gpredict" ON)
@@ -247,7 +248,6 @@ if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("decoder_modules/weather_sat_decoder")
 endif (OPT_BUILD_WEATHER_SAT_DECODER)
 
-add_subdirectory("decoder_modules/pager_decoder")
 
 # Misc
 if (OPT_BUILD_DISCORD_PRESENCE)
@@ -257,6 +257,10 @@ endif (OPT_BUILD_DISCORD_PRESENCE)
 if (OPT_BUILD_FREQUENCY_MANAGER)
 add_subdirectory("misc_modules/frequency_manager")
 endif (OPT_BUILD_FREQUENCY_MANAGER)
+
+if (OPT_BUILD_IQ_EXPORTER)
+add_subdirectory("misc_modules/iq_exporter")
+endif (OPT_BUILD_IQ_EXPORTER)
 
 if (OPT_BUILD_RECORDER)
 add_subdirectory("misc_modules/recorder")
