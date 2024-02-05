@@ -1,18 +1,26 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp_core)
 
-if (USE_INTERNAL_LIBCORRECT)
+if(USE_INTERNAL_LIBCORRECT)
     add_subdirectory("libcorrect/")
-endif (USE_INTERNAL_LIBCORRECT)
+endif(USE_INTERNAL_LIBCORRECT)
+
+if(USE_BUNDLE_DEFAULTS)
+    add_definitions(-DIS_MACOS_BUNDLE)
+endif(USE_BUNDLE_DEFAULTS)
+
+if(USE_LINUX_PORTABLE)
+    add_definitions(-DIS_LINUX_PORTABLE)
+endif(USE_LINUX_PORTABLE)
 
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
 add_definitions(-DSDRPP_IS_CORE)
 add_definitions(-DFLOG_ANDROID_TAG="SDR++")
-if (MSVC OR MINGW)
+if(MSVC OR MINGW)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif ()
+endif()
 
 # Configure backend sources
 file(GLOB_RECURSE BACKEND_SRC "backends/glfw/*.cpp" "backends/glfw/*.c")
@@ -70,14 +78,14 @@ endif()
 
 
 # Link to libcorrect
-if (USE_INTERNAL_LIBCORRECT)
+if(USE_INTERNAL_LIBCORRECT)
     target_include_directories(sdrpp_core PUBLIC "libcorrect/include")
     target_link_libraries(sdrpp_core PUBLIC correct_static)
-endif (USE_INTERNAL_LIBCORRECT)
+endif(USE_INTERNAL_LIBCORRECT)
 
 if (OPT_OVERRIDE_STD_FILESYSTEM)
     target_include_directories(sdrpp_core PUBLIC "std_replacement")
-endif (OPT_OVERRIDE_STD_FILESYSTEM)
+endif(OPT_OVERRIDE_STD_FILESYSTEM)
 
 if(WIN32 OR MINGW)
     # WinSock2
@@ -129,6 +137,11 @@ else()
 endif()
 
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
+
+# Copy sdrpp_core library to build dir
+if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_custom_target(copy-sdrpp_core ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+endif()
 
 # Install directives
 install(TARGETS sdrpp_core DESTINATION lib)

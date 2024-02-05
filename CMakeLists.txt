@@ -52,6 +52,8 @@ option(OPT_BUILD_SCHEDULER "Build the scheduler" OFF)
 
 # Other options
 option(USE_INTERNAL_LIBCORRECT "Use an internal version of libcorrect" ON)
+option(USE_BUNDLE_DEFAULTS "Set the default resource and module directories to the right ones for a MacOS .app" OFF)
+option(USE_LINUX_PORTABLE "Set the resource and module directories for a Linux portable build" OFF)
 
 # Module cmake path
 set(SDRPP_MODULE_CMAKE "${CMAKE_SOURCE_DIR}/cmake/sdrpp_module.cmake")
@@ -60,31 +62,39 @@ set(SDRPP_MODULE_CMAKE "${CMAKE_SOURCE_DIR}/cmake/sdrpp_module.cmake")
 set(SDRPP_CORE_ROOT "${CMAKE_SOURCE_DIR}/core/src/")
 
 # Compiler flags
+# NEED fix
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     # Debug Flags
     if(MSVC)
         set(SDRPP_COMPILER_FLAGS /std:c++17 /EHsc)
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set(SDRPP_COMPILER_FLAGS -g -Og -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
     elseif(MINGW)
         set(SDRPP_COMPILER_FLAGS -g -Og -std=c++17 -Wl,--export-all-symbols)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS} -mwindows)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(SDRPP_COMPILER_FLAGS -g -Og -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
     else()
         set(SDRPP_COMPILER_FLAGS -g -Og -std=c++17)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
     endif()
 else()
     # Normal Flags
-    if(MSVC)
+    if (MSVC)
         set(SDRPP_COMPILER_FLAGS /O2 /Ob2 /std:c++17 /EHsc)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
+    elseif(MINGW)
+        set(SDRPP_COMPILER_FLAGS -O3 -std=c++17 -Wl,--export-all-symbols)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS} -mwindows)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set(SDRPP_COMPILER_FLAGS -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-    elseif(MINGW)
-        set(SDRPP_COMPILER_FLAGS -g -Og -std=c++17 -mwindows -Wl,--export-all-symbols)
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,-e,mainCRTStartup ${CMAKE_EXE_LINKER_FLAGS}")
     else()
         set(SDRPP_COMPILER_FLAGS -O3 -std=c++17)
+        set(SDRPP_GUI_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
     endif()
 endif()
 set(SDRPP_MODULE_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
+
 
 # Set a default install prefix
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -93,6 +103,12 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     else()
         set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "..." FORCE)
     endif()
+endif()
+
+# Create directory for MinGW build
+if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/SDRRlusPlus-build-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
+    file(MAKE_DIRECTORY ${BUILD_OUTPUT_DIR}/modules/)
 endif()
 
 # Core of SDR++
@@ -236,9 +252,9 @@ if(OPT_BUILD_FREQUENCY_MANAGER)
     add_subdirectory("misc_modules/frequency_manager")
 endif(OPT_BUILD_FREQUENCY_MANAGER)
 
-if (OPT_BUILD_IQ_EXPORTER)
-add_subdirectory("misc_modules/iq_exporter")
-endif (OPT_BUILD_IQ_EXPORTER)
+if(OPT_BUILD_IQ_EXPORTER)
+    add_subdirectory("misc_modules/iq_exporter")
+endif(OPT_BUILD_IQ_EXPORTER)
 
 if(OPT_BUILD_RECORDER)
     add_subdirectory("misc_modules/recorder")
@@ -260,11 +276,17 @@ if(OPT_BUILD_SCHEDULER)
     add_subdirectory("misc_modules/scheduler")
 endif(OPT_BUILD_SCHEDULER)
 
+# create main SDR++
 add_executable(sdrpp "src/main.cpp" "resources/win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
-# # Compiler arguments
-# target_compile_options(sdrpp PRIVATE -g -Og -std=c++17 -mwindows)
+# Compiler arguments
+target_compile_options(sdrpp PRIVATE ${SDRPP_GUI_COMPILER_FLAGS})
+
+# Copy sdrpp gui binary to build dir
+if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_custom_target(copy_sdrpp ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:sdrpp>/sdrpp${CMAKE_EXECUTABLE_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+endif()
 
 # if(${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
 #     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
@@ -294,6 +316,14 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/res/fonts DESTINATION share/sdrp
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/res/icons DESTINATION share/sdrpp)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/res/themes DESTINATION share/sdrpp)
 configure_file(${CMAKE_SOURCE_DIR}/resources/sdrpp.desktop ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop @ONLY)
+
+if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    file(GLOB resources
+        "${CMAKE_SOURCE_DIR}/resources/res/*"
+    )
+    file(COPY ${resources} DESTINATION ${BUILD_OUTPUT_DIR}/res/)
+endif()
+
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop DESTINATION share/applications)

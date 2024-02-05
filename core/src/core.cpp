@@ -257,6 +257,9 @@ int sdrpp_main(int argc, char* argv[]) {
 #elif defined(__ANDROID__)
     defConfig["modulesDirectory"] = root + "/modules";
     defConfig["resourcesDirectory"] = root + "/res";
+#elif defined(IS_LINUX_PORTABLE)
+    defConfig["modulesDirectory"] = "./modules";
+    defConfig["resourcesDirectory"] = "./res";
 #else
     defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
