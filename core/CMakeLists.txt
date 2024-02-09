@@ -26,10 +26,13 @@ elseif()
 endif()
 
 # add glfw
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/glfw/CMakeLists.txt" )
+    message(FATAL_ERROR "GLFW submodule not found. Did you forget to git clone recursively?\nFix with: git submodule update --init")
+endif()
 add_subdirectory(vendor/glfw)
 
 if(NOT TARGET glfw)
-    message(FATAL_ERROR "GLFW submodule was not found or properly added? `git submodule update`")
+    message(FATAL_ERROR "GLFW submodule was properly added?\nMaybe fix with: git submodule foreach --recursive git reset --hard")
 endif()
 
 set(GLFW3_INCLUDE_DIRS "vendor/glfw/include")
