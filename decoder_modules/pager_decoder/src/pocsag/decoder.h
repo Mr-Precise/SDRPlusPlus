@@ -8,19 +8,12 @@
 #include "dsp.h"
 #include "pocsag.h"
 
-const char* msgTypes[] = {
-    "Numeric",
-    "Unknown (0b01)",
-    "Unknown (0b10)",
-    "Alphanumeric",
-};
-
 #define BAUDRATE    2400
 #define SAMPLERATE  (BAUDRATE*10)
 
 class POCSAGDecoder : public Decoder {
 public:
-    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, BAUDRATE) {
+    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, 544) {
         this->name = name;
         this->vfo = vfo;
 
@@ -33,7 +26,7 @@ public:
         vfo->setBandwidthLimits(12500, 12500, true);
         vfo->setSampleRate(SAMPLERATE, 12500);
         dsp.init(vfo->output, SAMPLERATE, BAUDRATE);
-        reshape.init(&dsp.soft, BAUDRATE, (BAUDRATE / 30.0) - BAUDRATE);
+        reshape.init(&dsp.soft, 544, 0);
         dataHandler.init(&dsp.out, _dataHandler, this);
         diagHandler.init(&reshape.out, _diagHandler, this);
 
@@ -68,7 +61,6 @@ public:
     }
 
     void start() {
-        flog::debug("POCSAG start");
         dsp.start();
         reshape.start();
         dataHandler.start();
@@ -76,7 +68,6 @@ public:
     }
 
     void stop() {
-        flog::debug("POCSAG stop");
         dsp.stop();
         reshape.stop();
         dataHandler.stop();
