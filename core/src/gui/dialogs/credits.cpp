@@ -64,7 +64,7 @@ namespace credits {
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Spacing();
-        ImGui::TextUnformatted("SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")");
+        ImGui::TextUnformatted("SDR++Clean v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ") https://github.com/Mr-Precise/SDRPlusPlus");
 
         ImGui::EndPopup();
         ImGui::PopStyleColor();

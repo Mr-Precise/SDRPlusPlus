@@ -192,7 +192,7 @@ private:
         unsigned int bufferFrames = _this->sampleRate / 200;
         RtAudio::StreamOptions opts;
         opts.flags = RTAUDIO_MINIMIZE_LATENCY;
-        opts.streamName = "SDR++ Audio Source";
+        opts.streamName = "SDR++Clean Audio Source";
 
         // Open and start stream
         try {
