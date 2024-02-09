@@ -13,6 +13,28 @@ if(USE_LINUX_PORTABLE)
     add_definitions(-DIS_LINUX_PORTABLE)
 endif(USE_LINUX_PORTABLE)
 
+## glfw settings
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
+if(MINGW)
+    set(GLFW_LIBRARY_TYPE "SHARED" CACHE STRING "" FORCE)
+elseif()
+    set(GLFW_LIBRARY_TYPE "STATIC" CACHE STRING "" FORCE)
+endif()
+
+# add glfw
+add_subdirectory(vendor/glfw)
+
+if(NOT TARGET glfw)
+    message(FATAL_ERROR "GLFW submodule was not found or properly added? `git submodule update`")
+endif()
+
+set(GLFW3_INCLUDE_DIRS "vendor/glfw/include")
+set(GLFW3_LIBRARIES glfw)
+
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
@@ -30,7 +52,6 @@ add_library(sdrpp_core SHARED ${SRC} ${BACKEND_SRC})
 
 # Set compiler options
 target_compile_options(sdrpp_core PRIVATE ${SDRPP_COMPILER_FLAGS})
-
 set_target_properties(sdrpp_core PROPERTIES PREFIX "")
 
 # Set the install prefix
@@ -41,22 +62,24 @@ target_include_directories(sdrpp_core PUBLIC "src/")
 target_include_directories(sdrpp_core PUBLIC "src/imgui")
 
 # Configure backend includes and libraries
-
 target_include_directories(sdrpp_core PUBLIC "backends/glfw")
 target_include_directories(sdrpp_core PUBLIC "backends/glfw/imgui")
+
 if(WIN32 OR MINGW)
     find_package(PkgConfig)
     # Volk
     find_package(Volk)
+    # target_link_libraries(sdrpp_core PUBLIC volk cpu_features)
     target_link_libraries(sdrpp_core PUBLIC Volk::volk)
+
+    # GLFW3
+    # find_package(glfw3 CONFIG REQUIRED)
+    target_link_libraries(sdrpp_core PUBLIC ${GLFW3_LIBRARIES})
+    target_include_directories(sdrpp_core PUBLIC ${GLFW3_INCLUDE_DIRS})
 
     # OpenGL
     find_package(OpenGL REQUIRED)
     target_link_libraries(sdrpp_core PUBLIC OpenGL::GL)
-
-    # GLFW3
-    find_package(glfw3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp_core PUBLIC glfw)
 
     # FFTW3
     pkg_check_modules(FFTW fftw3f REQUIRED)
@@ -70,12 +93,11 @@ if(WIN32 OR MINGW)
     target_link_libraries(sdrpp_core PUBLIC zstd::libzstd_shared)
 else()
     find_package(PkgConfig)
-    pkg_check_modules(GLFW3 REQUIRED glfw3)
+    # pkg_check_modules(GLFW3 REQUIRED glfw3)
     target_include_directories(sdrpp_core PUBLIC ${GLFW3_INCLUDE_DIRS})
-    target_link_directories(sdrpp_core PUBLIC ${GLFW3_LIBRARY_DIRS})
+    # target_link_directories(sdrpp_core PUBLIC ${GLFW3_LIBRARY_DIRS})
     target_link_libraries(sdrpp_core PUBLIC ${GLFW3_LIBRARIES})
 endif()
-
 
 # Link to libcorrect
 if(USE_INTERNAL_LIBCORRECT)
@@ -96,7 +118,7 @@ else()
 
     pkg_check_modules(FFTW3 REQUIRED fftw3f)
     pkg_check_modules(VOLK REQUIRED volk)
-    pkg_check_modules(GLFW3 REQUIRED glfw3)
+    # pkg_check_modules(GLFW3 REQUIRED glfw3)
     pkg_check_modules(LIBZSTD REQUIRED libzstd)
 
     target_include_directories(sdrpp_core PUBLIC
@@ -110,7 +132,7 @@ else()
     target_link_directories(sdrpp_core PUBLIC
         ${OPENGL_LIBRARY_DIRS}
         ${FFTW3_LIBRARY_DIRS}
-        ${GLFW3_LIBRARY_DIRS}
+        # ${GLFW3_LIBRARY_DIRS}
         ${VOLK_LIBRARY_DIRS}
         ${LIBZSTD_LIBRARY_DIRS}
     )
@@ -141,6 +163,10 @@ set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 # Copy sdrpp_core library to build dir
 if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_custom_target(copy-sdrpp_core ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+endif()
+# Copy glfw library to build dir
+if(MINGW)
+    add_custom_target(copy-lib_glfw ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:glfw>/glfw3${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
 endif()
 
 # Install directives
