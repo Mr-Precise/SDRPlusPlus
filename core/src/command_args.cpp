@@ -9,8 +9,10 @@ void CommandArgsParser::defineAll() {
         std::string root = (std::string)getenv("HOME") + "/Library/Application Support/sdrpp";
 #elif defined(__ANDROID__)
         std::string root = "/storage/self/primary/sdrpp";
+#elif defined(IS_LINUX_PORTABLE)
+        std::string root = ".";
 #else
-        std::string root = (std::string)getenv("HOME") + "/.config/sdrpp";
+        std::string root = (std::string)getenv("HOME") + "/.config/sdrppclean";
 #endif
 
         define('a', "addr", "Server mode address", "0.0.0.0");
