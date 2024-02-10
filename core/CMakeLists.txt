@@ -170,6 +170,7 @@ endif()
 # Copy glfw library to build dir
 if(MINGW)
     add_custom_target(copy-lib_glfw ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:glfw>/glfw3${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+    add_dependencies(copy-lib_glfw glfw)
 endif()
 
 # Install directives
