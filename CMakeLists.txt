@@ -41,7 +41,7 @@ option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (Dependencies: codec2
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_PAGER_DECODER "Build the pager decoder module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
-# //REMOVE option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
+# option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
 
 # Misc
 option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
@@ -303,22 +303,9 @@ if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_custom_target(copy_sdrpp ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:sdrpp>/sdrpp${CMAKE_EXECUTABLE_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
 endif()
 
-# if(${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-#     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
-# endif()
-
-# if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-#     target_link_libraries(sdrpp PUBLIC pthread)
-#     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
-# endif()
-
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-#     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
-# endif()
-
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
-# endif()
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    target_link_libraries(sdrpp PUBLIC pthread)
+endif()
 
 # Create module cmake file
 configure_file(${CMAKE_SOURCE_DIR}/cmake/sdrpp_module.cmake ${CMAKE_CURRENT_BINARY_DIR}/sdrpp_module.cmake @ONLY)
