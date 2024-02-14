@@ -35,6 +35,13 @@ enum SampleType {
     SAMPLE_TYPE_FLOAT32
 };
 
+const size_t SAMPLE_TYPE_SIZE[] {
+    sizeof(int8_t)*2,
+    sizeof(int16_t)*2,
+    sizeof(int32_t)*2,
+    sizeof(float)*2,
+};
+
 class NetworkSourceModule : public ModuleManager::Instance {
 public:
     NetworkSourceModule(std::string name) {
@@ -66,7 +73,7 @@ public:
         }
 
         // Define protocols
-        protocols.define("TCP (Server)", PROTOCOL_TCP_SERVER);
+        // protocols.define("TCP (Server)", PROTOCOL_TCP_SERVER);
         protocols.define("TCP (Client)", PROTOCOL_TCP_CLIENT);
         protocols.define("UDP", PROTOCOL_UDP);
 
@@ -157,7 +164,31 @@ private:
         NetworkSourceModule* _this = (NetworkSourceModule*)ctx;
         if (_this->running) { return; }
         
-        // TODO
+        // Depends on protocol
+        try {
+            if (_this->proto == PROTOCOL_TCP_SERVER) {
+                // Create TCP listener
+                // TODO
+
+                // Start listen worker
+                // TODO
+            }
+            else if (_this->proto == PROTOCOL_TCP_CLIENT) {
+                // Connect to TCP server
+                _this->sock = net::connect(_this->hostname, _this->port);
+            }
+            else if (_this->proto == PROTOCOL_UDP) {
+                // Open UDP socket
+                _this->sock = net::openudp("0.0.0.0", _this->port, _this->hostname, _this->port, true);
+            }
+        }
+        catch (const std::exception& e) {
+            flog::error("Could not start Network Source: {}", e.what());
+            return;
+        }
+
+        // Start receive worker
+        _this->workerThread = std::thread(&NetworkSourceModule::worker, _this);
 
         _this->running = true;
         flog::info("NetworkSourceModule '{0}': Start!", _this->name);
@@ -167,7 +198,16 @@ private:
         NetworkSourceModule* _this = (NetworkSourceModule*)ctx;
         if (!_this->running) { return; }
 
+        // Stop listen worker
         // TODO
+
+        // Close connection
+        if (_this->sock) { _this->sock->close(); }
+
+        // Stop worker thread
+        _this->stream.stopWriter();
+        if (_this->workerThread.joinable()) { _this->workerThread.join(); }
+        _this->stream.clearWriteStop();
 
         _this->running = false;
         flog::info("NetworkSourceModule '{0}': Stop!", _this->name);
@@ -237,52 +277,43 @@ private:
     }
 
     void worker() {
-        int frameSize = samplerate / 200;
-        switch (sampType) {
-        case SAMPLE_TYPE_INT8:
-            frameSize *= 2*sizeof(int8_t);;
-            break;
-        case SAMPLE_TYPE_INT16:
-            frameSize *= 2*sizeof(int16_t);
-            break;
-        case SAMPLE_TYPE_INT32:
-            frameSize *= 2*sizeof(int32_t);
-            break;
-        case SAMPLE_TYPE_FLOAT32:
-            frameSize *= sizeof(dsp::complex_t);
-            break;
-        default:
-            return;
-        }
-        uint8_t* buffer = dsp::buffer::alloc<uint8_t>(STREAM_BUFFER_SIZE*sizeof(uint32_t));
+        // Compute sizes
+        int blockSize = samplerate / 200;
+        int sampleSize = SAMPLE_TYPE_SIZE[sampType];
+        int frameSize = blockSize*sampleSize;
+
+        // Allocate receive buffer
+        uint8_t* buffer = dsp::buffer::alloc<uint8_t>(frameSize);
 
         while (true) {
             // Read samples from socket
             int bytes = sock->recv(buffer, frameSize, true);
+            if (bytes <= 0) { break; }
 
-            // Convert to CF32
-            int count;
+            // Convert to CF32 (note: problem if partial sample)
+            int count = bytes / sampleSize;
             switch (sampType) {
             case SAMPLE_TYPE_INT8:
-                frameSize *= 2*sizeof(int8_t);;
+                volk_8i_s32f_convert_32f((float*)stream.writeBuf, (int8_t*)buffer, 128.0f, count*2);
                 break;
             case SAMPLE_TYPE_INT16:
-                frameSize *= 2*sizeof(int16_t);
+                volk_16i_s32f_convert_32f((float*)stream.writeBuf, (int16_t*)buffer, 32768.0f, count*2);
                 break;
             case SAMPLE_TYPE_INT32:
-                frameSize *= 2*sizeof(int32_t);
+                volk_32i_s32f_convert_32f((float*)stream.writeBuf, (int32_t*)buffer, 2147483647.0f, count*2);
                 break;
             case SAMPLE_TYPE_FLOAT32:
-                //memcpy(stream.writeBuf, buffer, )
+                memcpy(stream.writeBuf, buffer, bytes);
                 break;
             default:
                 break;
             }
 
             // Send out converted samples
-            //if (!stream.swap(bufferSize))
+            if (!stream.swap(count)) { break; }
         }
 
+        // Free receive buffer
         dsp::buffer::free(buffer);
     }
 
@@ -295,7 +326,7 @@ private:
     
     int samplerate = 1000000;
     int srId;
-    Protocol proto = PROTOCOL_TCP_SERVER;
+    Protocol proto = PROTOCOL_UDP;
     int protoId;
     SampleType sampType = SAMPLE_TYPE_INT16;
     int sampTypeId;
@@ -306,6 +337,7 @@ private:
     OptionList<std::string, Protocol> protocols;
     OptionList<std::string, SampleType> sampleTypes;
 
+    std::thread workerThread;
     std::thread listenWorkerThread;
 
     std::mutex sockMtx;
