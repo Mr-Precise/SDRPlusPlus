@@ -108,7 +108,7 @@ if(USE_INTERNAL_LIBCORRECT)
     target_link_libraries(sdrpp_core PUBLIC correct_static)
 endif(USE_INTERNAL_LIBCORRECT)
 
-if (OPT_OVERRIDE_STD_FILESYSTEM)
+if(OPT_OVERRIDE_STD_FILESYSTEM)
     target_include_directories(sdrpp_core PUBLIC "std_replacement")
 endif(OPT_OVERRIDE_STD_FILESYSTEM)
 
