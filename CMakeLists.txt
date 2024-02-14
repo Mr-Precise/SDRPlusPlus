@@ -17,7 +17,7 @@ option(OPT_BUILD_FILE_SOURCE "Wav file source" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Dependencies: libhackrf)" ON)
 option(OPT_BUILD_HERMES_SOURCE "Build Hermes Source Module (no dependencies required)" ON)
 option(OPT_BUILD_LIMESDR_SOURCE "Build LimeSDR Source Module (Dependencies: liblimesuite)" OFF)
-option(OPT_BUILD_NETWORK_SOURCE "Build Network Source Module (no dependencies required)" on)
+option(OPT_BUILD_NETWORK_SOURCE "Build Network Source Module (no dependencies required)" ON)
 option(OPT_BUILD_PERSEUS_SOURCE "Build Perseus Source Module (Dependencies: libperseus-sdr)" OFF)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Dependencies: libiio, libad9361)" ON)
 option(OPT_BUILD_RFSPACE_SOURCE "Build RFspace Source Module (no dependencies required)" ON)
@@ -287,7 +287,12 @@ if (OPT_BUILD_SCHEDULER)
 add_subdirectory("misc_modules/scheduler")
 endif (OPT_BUILD_SCHEDULER)
 
-add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+if (MSVC)
+    add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+else ()
+    add_executable(sdrpp "src/main.cpp")
+endif ()
+
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
 # Compiler arguments
