@@ -7,7 +7,7 @@ option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on sy
 # Sources
 option(OPT_BUILD_AIRSPY_SOURCE "Build Airspy Source Module (Dependencies: libairspy)" ON)
 option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Dependencies: libairspyhf)" ON)
-option(OPT_BUILD_MIRISDR_SOURCE "Build MiriSDR Source Module (Dependencies: libmirisdr v4 and higher)" ON)
+option(OPT_BUILD_MIRISDR_SOURCE "Build MiriSDR Source Module (Dependencies: libmirisdr v4 and higher)" OFF)
 option(OPT_BUILD_AUDIO_SOURCE "Build Audio Source Module (Dependencies: rtaudio)" ON)
 option(OPT_BUILD_BLADERF_SOURCE "Build BladeRF Source Module (Dependencies: libbladeRF)" OFF)
 option(OPT_BUILD_FILE_SOURCE "Wav file source" ON)
@@ -108,7 +108,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # Create directory for MinGW build
-if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND USE_LINUX_PORTABLE) OR MINGW)
     set(BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/SDRRlusPlus-build-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
     file(MAKE_DIRECTORY ${BUILD_OUTPUT_DIR}/modules/)
 endif()
@@ -287,11 +287,11 @@ if(OPT_BUILD_SCHEDULER)
 endif(OPT_BUILD_SCHEDULER)
 
 # create main SDR++
-if (MSVC OR MINGW)
+if(MSVC OR MINGW)
     add_executable(sdrpp "src/main.cpp" "resources/win32/resources.rc")
-else ()
+else()
     add_executable(sdrpp "src/main.cpp")
-endif ()
+endif()
 
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
@@ -299,8 +299,12 @@ target_link_libraries(sdrpp PRIVATE sdrpp_core)
 target_compile_options(sdrpp PRIVATE ${SDRPP_GUI_COMPILER_FLAGS})
 
 # Copy sdrpp gui binary to build dir
-if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_custom_target(copy_sdrpp ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:sdrpp>/sdrpp${CMAKE_EXECUTABLE_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND USE_LINUX_PORTABLE) OR MINGW)
+    add_custom_target(copy_sdrpp ALL
+        COMMAND ${CMAKE_COMMAND} -E copy
+            "$<TARGET_FILE_DIR:sdrpp>/sdrpp${CMAKE_EXECUTABLE_SUFFIX}"
+            "${BUILD_OUTPUT_DIR}"
+    )
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
@@ -319,7 +323,7 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/res/icons DESTINATION share/sdrp
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/res/themes DESTINATION share/sdrpp)
 configure_file(${CMAKE_SOURCE_DIR}/resources/sdrpp.desktop ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop @ONLY)
 
-if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND USE_LINUX_PORTABLE) OR MINGW)
     file(GLOB resources
         "${CMAKE_SOURCE_DIR}/resources/res/*"
     )

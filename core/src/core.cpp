@@ -32,6 +32,14 @@
 #endif
 #endif
 
+#ifndef INSTALL_MOD_DIR
+#ifdef __APPLE__
+#define INSTALL_MOD_DIR "/usr/local/lib"
+#else
+#define INSTALL_MOD_DIR "/usr/lib"
+#endif
+#endif
+
 namespace core {
     ConfigManager configManager;
     ModuleManager moduleManager;
@@ -261,7 +269,7 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
 #else
-    defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
+    defConfig["modulesDirectory"] = INSTALL_MOD_DIR "/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
 #endif
 

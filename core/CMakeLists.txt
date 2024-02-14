@@ -59,6 +59,9 @@ set_target_properties(sdrpp_core PROPERTIES PREFIX "")
 
 # Set the install prefix
 target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+# Set the path to install plugins given the CMake install prefix
+target_compile_definitions(sdrpp_core PUBLIC INSTALL_MOD_DIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+
 
 # Include core headers
 target_include_directories(sdrpp_core PUBLIC "src/")
@@ -164,14 +167,23 @@ endif()
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 
 # Copy sdrpp_core library to build dir
-if(MINGW OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_custom_target(copy-sdrpp_core ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND USE_LINUX_PORTABLE) OR MINGW)
+    add_custom_target(copy-sdrpp_core ALL
+        COMMAND ${CMAKE_COMMAND} -E copy
+            "$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            "${BUILD_OUTPUT_DIR}"
+    )
 endif()
+
 # Copy glfw library to build dir
 if(MINGW)
-    add_custom_target(copy-lib_glfw ALL COMMAND ${CMAKE_COMMAND} -E copy \"$<TARGET_FILE_DIR:glfw>/glfw3${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${BUILD_OUTPUT_DIR}\")
+    add_custom_target(copy-lib_glfw ALL
+        COMMAND ${CMAKE_COMMAND} -E copy
+            "$<TARGET_FILE_DIR:glfw>/glfw3${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            "${BUILD_OUTPUT_DIR}"
+    )
     add_dependencies(copy-lib_glfw glfw)
 endif()
 
 # Install directives
-install(TARGETS sdrpp_core DESTINATION lib)
+install(TARGETS sdrpp_core DESTINATION ${CMAKE_INSTALL_LIBDIR})
