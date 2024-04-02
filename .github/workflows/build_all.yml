@@ -92,9 +92,6 @@ jobs:
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
-          
-        - name: Update brew repositories
-          run: brew update
 
         - name: Install dependencies
           run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
@@ -103,7 +100,7 @@ jobs:
           run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install SDRplay API
-          run: wget https://www.sdrplay.com/software/SDRplayAPI-macos-installer-universal-3.12.1.pkg && sudo installer -pkg SDRplayAPI-macos-installer-universal-3.12.1.pkg -target /
+          run: wget https://www.sdrplay.com/software/SDRplayAPI-macos-installer-universal-3.14.0.pkg && sudo installer -pkg SDRplayAPI-macos-installer-universal-3.14.0.pkg -target /
 
         - name: Install libiio
           run: wget https://github.com/analogdevicesinc/libiio/archive/refs/tags/v0.25.zip && 7z x v0.25.zip && cd libiio-0.25 && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
@@ -146,18 +143,15 @@ jobs:
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
-          
-        - name: Update brew repositories
-          run: brew update
 
         - name: Install dependencies
-          run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
+          run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako --break-system-packages
 
         - name: Install volk
           run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install SDRplay API
-          run: wget https://www.sdrplay.com/software/SDRplayAPI-macos-installer-universal-3.12.1.pkg && sudo installer -pkg SDRplayAPI-macos-installer-universal-3.12.1.pkg -target /
+          run: wget https://www.sdrplay.com/software/SDRplayAPI-macos-installer-universal-3.14.0.pkg && sudo installer -pkg SDRplayAPI-macos-installer-universal-3.14.0.pkg -target /
 
         - name: Install libiio
           run: wget https://github.com/analogdevicesinc/libiio/archive/refs/tags/v0.25.zip && 7z x v0.25.zip && cd libiio-0.25 && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
