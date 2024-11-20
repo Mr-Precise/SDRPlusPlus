@@ -37,14 +37,20 @@ namespace sdrpp_credits {
     const char* hardwareDonators[] = {
         "Aaronia AG",
         "Airspy",
+        "Alex 4Z5LV",
         "Analog Devices",
         "CaribouLabs",
+        "Deepace",
         "Ettus Research",
+        "Harogic",
         "Howard Su",
         "MicroPhase",
+        "Microtelecom",
         "MyriadRF",
         "Nuand",
+        "RFNM",
         "RFspace",
+        "RigExpert",
         "RTL-SDRblog",
         "SDRplay"
     };
