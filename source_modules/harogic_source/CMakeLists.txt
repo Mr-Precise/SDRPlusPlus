@@ -5,12 +5,17 @@ file(GLOB SRC "src/*.cpp")
 
 include(${SDRPP_MODULE_CMAKE})
 
+# https://harogic.eu/service-support/api/
 if (MSVC)
     # Lib path
     target_link_directories(harogic_source PRIVATE "C:/radio/HTRA_API/x64/htra_api/")
     target_include_directories(harogic_source PRIVATE "C:/radio/HTRA_API/x64/htra_api/")
     target_link_libraries(harogic_source PRIVATE htra_api)
-else (MSVC)
+elseif (MINGW)
+    target_link_directories(harogic_source PRIVATE "vendor/HTRA_API/x64/htra_api/")
+    target_include_directories(harogic_source PRIVATE "vendor/HTRA_API/x64/htra_api/")
+    target_link_libraries(harogic_source PRIVATE htra_api)
+else ()
     target_link_directories(harogic_source PRIVATE "/opt/htraapi/lib/${CMAKE_SYSTEM_PROCESSOR}/")
     target_include_directories(harogic_source PRIVATE "/opt/htraapi/inc/")
     target_link_libraries(harogic_source PRIVATE htraapi)
