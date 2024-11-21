@@ -155,11 +155,11 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["menuElements"][3]["name"] = "Sinks";
     defConfig["menuElements"][3]["open"] = true;
 
-    defConfig["menuElements"][3]["name"] = "Frequency Manager";
-    defConfig["menuElements"][3]["open"] = true;
-
-    defConfig["menuElements"][4]["name"] = "VFO Color";
+    defConfig["menuElements"][4]["name"] = "Frequency Manager";
     defConfig["menuElements"][4]["open"] = true;
+
+    defConfig["menuElements"][5]["name"] = "VFO Color";
+    defConfig["menuElements"][5]["open"] = true;
 
     defConfig["menuElements"][6]["name"] = "Band Plan";
     defConfig["menuElements"][6]["open"] = true;
@@ -181,16 +181,24 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["BladeRF Source"]["enabled"] = true;
     defConfig["moduleInstances"]["File Source"]["module"] = "file_source";
     defConfig["moduleInstances"]["File Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["FobosSDR Source"]["module"] = "fobossdr_source";
+    defConfig["moduleInstances"]["FobosSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["HackRF Source"]["module"] = "hackrf_source";
     defConfig["moduleInstances"]["HackRF Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["Harogic Source"]["module"] = "harogic_source";
+    defConfig["moduleInstances"]["Harogic Source"]["enabled"] = true;
     defConfig["moduleInstances"]["Hermes Source"]["module"] = "hermes_source";
     defConfig["moduleInstances"]["Hermes Source"]["enabled"] = true;
     defConfig["moduleInstances"]["LimeSDR Source"]["module"] = "limesdr_source";
     defConfig["moduleInstances"]["LimeSDR Source"]["enabled"] = true;
-    defConfig["moduleInstances"]["PlutoSDR Source"]["module"] = "plutosdr_source";
-    defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["Network Source"]["module"] = "network_source";
+    defConfig["moduleInstances"]["Network Source"]["enabled"] = true;
     defConfig["moduleInstances"]["PerseusSDR Source"]["module"] = "perseus_source";
     defConfig["moduleInstances"]["PerseusSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["PlutoSDR Source"]["module"] = "plutosdr_source";
+    defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["RFNM Source"]["module"] = "rfnm_source";
+    defConfig["moduleInstances"]["RFNM Source"]["enabled"] = true;
     defConfig["moduleInstances"]["RFspace Source"]["module"] = "rfspace_source";
     defConfig["moduleInstances"]["RFspace Source"]["enabled"] = true;
     defConfig["moduleInstances"]["RTL-SDR Source"]["module"] = "rtl_sdr_source";
@@ -201,8 +209,12 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["SDRplay Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SDR++ Server Source"]["module"] = "sdrpp_server_source";
     defConfig["moduleInstances"]["SDR++ Server Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["Spectran HTTP Source"]["module"] = "spectran_http_source";
+    defConfig["moduleInstances"]["Spectran HTTP Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SpyServer Source"]["module"] = "spyserver_source";
     defConfig["moduleInstances"]["SpyServer Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["USRP Source"]["module"] = "usrp_source";
+    defConfig["moduleInstances"]["USRP Source"]["enabled"] = true;
 
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
     defConfig["moduleInstances"]["Network Sink"] = "network_sink";
@@ -228,12 +240,19 @@ int sdrpp_main(int argc, char* argv[]) {
 
     defConfig["modules"] = json::array();
 
-    defConfig["offsetMode"] = (int)0; // Off
-    defConfig["offset"] = 0.0;
+    defConfig["offsets"]["SpyVerter"] = 120000000.0;
+    defConfig["offsets"]["Ham-It-Up"] = 125000000.0;
+    defConfig["offsets"]["MMDS S-band (1998MHz)"] = -1998000000.0;
+    defConfig["offsets"]["DK5AV X-Band"] = -6800000000.0;
+    defConfig["offsets"]["Ku LNB (9750MHz)"] = -9750000000.0;
+    defConfig["offsets"]["Ku LNB (10700MHz)"] = -10700000000.0;
+
+    defConfig["selectedOffset"] = "None";
+    defConfig["manualOffset"] = 0.0;
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
-    defConfig["decimationPower"] = 0;
+    defConfig["decimation"] = 1;
     defConfig["iqCorrection"] = false;
     defConfig["invertIQ"] = false;
 
@@ -317,11 +336,17 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Remove unused elements
     auto items = core::configManager.conf.items();
+    auto newConf = core::configManager.conf;
+    bool configCorrected = false;
     for (auto const& item : items) {
         if (!defConfig.contains(item.key())) {
             flog::info("Unused key in config {0}, repairing", item.key());
-            core::configManager.conf.erase(item.key());
+            newConf.erase(item.key());
+            configCorrected = true;
         }
+    }
+    if (configCorrected) {
+        core::configManager.conf = newConf;
     }
 
     // Update to new module representation in config if needed

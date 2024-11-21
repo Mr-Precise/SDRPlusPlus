@@ -23,6 +23,12 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
+const std::vector<const char*> deviceWhiteList = {
+    "PlutoSDR",
+    "ANTSDR",
+    "LibreSDR"
+};
+
 class PlutoSDRSourceModule : public ModuleManager::Instance {
 public:
     PlutoSDRSourceModule(std::string name) {
@@ -130,7 +136,14 @@ private:
             std::string duri = iio_context_info_get_uri(info);
 
             // If the device is not a plutosdr, don't include it
-            if (desc.find("PlutoSDR") == std::string::npos) {
+            bool isPluto = false;
+            for (const auto type : deviceWhiteList) {
+                if (desc.find(type) != std::string::npos) {
+                    isPluto = true;
+                    break;
+                }
+            }
+            if (!isPluto) {
                 flog::warn("Ignored IIO device: [{}] {}", duri, desc);
                 continue;
             }
@@ -244,9 +257,6 @@ private:
             bwId = 0;
             bandwidth = bandwidths.value(bwId);
         }
-        
-        // Update core samplerate
-        core::setInputSampleRate(samplerate);
     }
 
     static void menuSelected(void* ctx) {
@@ -351,6 +361,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo("##plutosdr_dev_sel", &_this->devId, _this->devices.txt)) {
             _this->select(_this->devices.key(_this->devId));
+            core::setInputSampleRate(_this->samplerate);
             config.acquire();
             config.conf["device"] = _this->devices.key(_this->devId);
             config.release(true);
@@ -373,7 +384,7 @@ private:
         if (SmGui::Button(CONCAT("Refresh##_pluto_refr_", _this->name))) {
             _this->refresh();
             _this->select(_this->devDesc);
-
+            core::setInputSampleRate(_this->samplerate);
         }
         if (_this->running) { SmGui::EndDisabled(); }
 
