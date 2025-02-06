@@ -47,6 +47,7 @@ option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (Dependencies: codec2
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_PAGER_DECODER "Build the pager decoder module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
+option(OPT_BUILD_VOR_RECEIVER "VOR beacon receiver" OFF)
 # option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
 
 # Misc
@@ -113,9 +114,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     endif()
 endif()
 
-# Create directory for MinGW build
+# Create directory for MinGW & portable build
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND USE_LINUX_PORTABLE) OR MINGW)
-    set(BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/SDRRlusPlus-build-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
+    set(BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/SDRRlusPlusClean-build-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
     file(MAKE_DIRECTORY ${BUILD_OUTPUT_DIR}/modules/)
 endif()
 
@@ -286,6 +287,10 @@ endif(OPT_BUILD_RADIO)
 if(OPT_BUILD_RYFI_DECODER)
     add_subdirectory("decoder_modules/ryfi_decoder")
 endif(OPT_BUILD_RYFI_DECODER)
+
+if (OPT_BUILD_VOR_RECEIVER)
+    add_subdirectory("decoder_modules/vor_receiver")
+endif (OPT_BUILD_VOR_RECEIVER)
 
 if(OPT_BUILD_WEATHER_SAT_DECODER)
     add_subdirectory("decoder_modules/weather_sat_decoder")

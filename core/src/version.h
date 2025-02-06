@@ -1,3 +1,3 @@
 #pragma once
 
-#define VERSION_STR "2024.11-git"
+#define VERSION_STR "2025.2-git"
