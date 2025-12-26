@@ -128,7 +128,7 @@ jobs:
           run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install libperseus
-          run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure --prefix=/usr/local --prefix=/usr/local && make && sudo make install && cd ..
+          run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure --prefix=/usr/local && make && sudo make install && cd ..
 
         - name: Install librfnm
           run: git clone https://github.com/AlexandreRouma/librfnm && cd librfnm && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make && sudo make install && cd ..
@@ -158,7 +158,7 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_macos_intel
-              path: ${{runner.workspace}}/sdrpp_macos_intel.zip  
+              path: ${{runner.workspace}}/sdrpp_macos_intel.zip
 
     build_macos_arm:
         runs-on: macos-15
