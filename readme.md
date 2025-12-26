@@ -452,9 +452,11 @@ For code changes, please create a feature request instead.
 * Kezza
 * Krys Kamieniecki
 * Lee Donaghy
-* Lee KD1SQ
+* Lee (KD1SQ)
 * .lozenge. (Hank Hill)
 * Martin Herren (HB9FXX)
+* NeoVilsonWong
+* Nitin (VU2JEK)
 * ON4MU
 * [Passion-Radio.com](https://passion-radio.com/)
 * Paul Maine

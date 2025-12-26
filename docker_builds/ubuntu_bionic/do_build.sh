@@ -15,10 +15,11 @@ apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk1-dev 
             libcodec2-dev libudev-dev autoconf libtool xxd libspdlog-dev
 
 # Install SDRPlay libraries
-wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.15.1.run
-7z x ./SDRplay_RSP_API-Linux-3.15.1.run
-7z x ./SDRplay_RSP_API-Linux-3.15.1
-cp x86_64/libsdrplay_api.so.3.15 /usr/lib/libsdrplay_api.so
+SDRPLAY_ARCH=$(dpkg --print-architecture)
+wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.15.2.run
+7z x ./SDRplay_RSP_API-Linux-3.15.2.run
+7z x ./SDRplay_RSP_API-Linux-3.15.2
+cp $SDRPLAY_ARCH/libsdrplay_api.so.3.15 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
 # Install a more recent libusb version
@@ -82,11 +83,21 @@ echo 'Version: 0.7' >> /usr/share/pkgconfig/codec2.pc
 echo 'Libs: -L/usr/include/x86_64-linux-gnu/ -lcodec2' >> /usr/share/pkgconfig/codec2.pc
 echo 'Cflags: -I/usr/include/codec2' >> /usr/share/pkgconfig/codec2.pc
 
+# Install libhydrasdr
+git clone https://github.com/hydrasdr/rfone_host
+cd rfone_host
+mkdir build
+cd build
+cmake ..
+make -j2
+make install
+cd ../../
+
 # Build SDR++ Itself
 cd SDRPlusPlus
 mkdir build
 cd build
-cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=OFF -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_OVERRIDE_STD_FILESYSTEM=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON
+cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=OFF -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_OVERRIDE_STD_FILESYSTEM=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON -DOPT_BUILD_HYDRASDR_SOURCE=ON
 make VERBOSE=1 -j2
 
 # Generate package
