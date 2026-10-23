@@ -32,18 +32,26 @@ private val usbReceiver = object : BroadcastReceiver() {
         if (ACTION_USB_PERMISSION == intent.action) {
             synchronized(this) {
                 var _this = context as MainActivity;
-                _this.SDR_device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                _this.SDR_device = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                }
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    _this.SDR_conn = _this.usbManager!!.openDevice(_this.SDR_device);
+                    _this.SDR_conn = _this.usbManager?.openDevice(_this.SDR_device);
                     
                     // Save SDR info
-                    _this.SDR_VID = _this.SDR_device!!.getVendorId();
-                    _this.SDR_PID = _this.SDR_device!!.getProductId()
-                    _this.SDR_FD = _this.SDR_conn!!.getFileDescriptor();
+                    _this.SDR_VID = _this.SDR_device?.getVendorId() ?: -1;
+                    _this.SDR_PID = _this.SDR_device?.getProductId() ?: -1;
+                    _this.SDR_FD = _this.SDR_conn?.getFileDescriptor() ?: -1;
                 }
                 
-                // Whatever the hell this does
-                context.unregisterReceiver(this);
+                try {
+                    context.unregisterReceiver(this);
+                } catch (e: Exception) {
+                    // Receiver might already be unregistered
+                }
 
                 // Hide again the system bars
                 _this.hideSystemBars();
@@ -77,17 +85,26 @@ class MainActivity : NativeActivity() {
         // Hide bars
         hideSystemBars();
 
-        // Ask for required permissions, without these the app cannot run.
-        checkAndAsk(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        checkAndAsk(Manifest.permission.READ_EXTERNAL_STORAGE);
-
-        // TODO: Have the main code wait until these two permissions are available
+        // Ask for required permissions on older Android versions (API < 30)
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
+            checkAndAsk(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            checkAndAsk(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
 
         // Register events
         usbManager = getSystemService(Context.USB_SERVICE) as UsbManager;
-        val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
+        val flags = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_MUTABLE
+        } else {
+            0
+        }
+        val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), flags)
         val filter = IntentFilter(ACTION_USB_PERMISSION)
-        registerReceiver(usbReceiver, filter)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(usbReceiver, filter)
+        }
 
         // Get permission for all USB devices
         val devList = usbManager!!.getDeviceList();
@@ -105,6 +122,15 @@ class MainActivity : NativeActivity() {
         // Hide bars again
         hideSystemBars();
         super.onResume();
+    }
+
+    public override fun onDestroy() {
+        try {
+            unregisterReceiver(usbReceiver);
+        } catch (e: Exception) {
+            // Receiver might not be registered
+        }
+        super.onDestroy();
     }
 
     fun showSoftInput() {
@@ -147,7 +173,7 @@ class MainActivity : NativeActivity() {
     }
 
     public fun extractDir(aman: AssetManager, local: String, rsrc: String): Int {
-        val flist = aman.list(rsrc);
+        val flist = aman.list(rsrc) ?: return 0;
         var ecount = 0;
         for (fp in flist) {
             val lpath = local + "/" + fp;
