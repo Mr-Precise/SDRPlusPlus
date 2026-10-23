@@ -552,11 +552,11 @@ jobs:
           run: docker build --progress=plain -t android-sdr-kit .
 
         - name: Build
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus android-sdr-kit /bin/bash -l -c "cd /root/SDRPlusPlus/android && gradle --info assembleDebug"
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus android-sdr-kit /bin/bash -l -c "cd /root/SDRPlusPlus/android && chmod +x ./gradlew && ./gradlew --info assembleDebug"
 
         - name: Recover APK
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/app-debug.apk ./ && mv app-debug.apk sdrpp.apk
+          run: docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/app-universal-debug.apk ./sdrpp.apk
 
         - name: Save APK
           uses: actions/upload-artifact@v4
