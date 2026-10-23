@@ -5,12 +5,17 @@ endif ()
 if (NOT SDRPP_MODULE_COMPILER_FLAGS)
     set(SDRPP_MODULE_COMPILER_FLAGS @SDRPP_MODULE_COMPILER_FLAGS@)
 endif ()
+if (ANDROID AND NOT DEFINED SDR_KIT_ROOT)
+    set(SDR_KIT_ROOT "/sdr-kit" CACHE PATH "Path to android-sdr-kit root")
+endif ()
 
 # Created shared lib and link to core
 add_library(${PROJECT_NAME} SHARED ${SRC})
 target_link_libraries(${PROJECT_NAME} PRIVATE sdrpp_core)
 target_include_directories(${PROJECT_NAME} PRIVATE "${SDRPP_CORE_ROOT}/src/")
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+if (NOT ANDROID)
+    set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+endif ()
 
 # Set compile arguments
 target_compile_options(${PROJECT_NAME} PRIVATE ${SDRPP_MODULE_COMPILER_FLAGS})

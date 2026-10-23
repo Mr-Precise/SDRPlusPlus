@@ -12,9 +12,15 @@ if (MSVC)
     target_link_libraries(rtl_sdr_source PRIVATE rtlsdr)
 elseif (ANDROID)
     target_link_libraries(rtl_sdr_source PUBLIC
-        /sdr-kit/${ANDROID_ABI}/lib/libusb1.0.so
-        /sdr-kit/${ANDROID_ABI}/lib/librtlsdr.so
+        ${SDR_KIT_ROOT}/${ANDROID_ABI}/lib/libusb1.0.so
+        ${SDR_KIT_ROOT}/${ANDROID_ABI}/lib/librtlsdr.so
     )
+    include(CheckSymbolExists)
+    set(CMAKE_REQUIRED_INCLUDES ${SDR_KIT_ROOT}/${ANDROID_ABI}/include)
+    check_symbol_exists(rtlsdr_open_sys_dev "rtl-sdr.h" HAVE_RTLSDR_OPEN_SYS_DEV)
+    if (HAVE_RTLSDR_OPEN_SYS_DEV)
+        target_compile_definitions(rtl_sdr_source PRIVATE HAVE_RTLSDR_OPEN_SYS_DEV)
+    endif ()
 else (MSVC)
     find_package(PkgConfig)
 

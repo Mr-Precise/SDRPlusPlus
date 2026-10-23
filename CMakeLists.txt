@@ -112,6 +112,9 @@ endif()
 
 # Configure toolchain for android
 if (ANDROID)
+    if (NOT DEFINED SDR_KIT_ROOT)
+        set(SDR_KIT_ROOT "/sdr-kit" CACHE PATH "Path to android-sdr-kit root")
+    endif ()
     set(CMAKE_SHARED_LINKER_FLAGS
         "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
     )
