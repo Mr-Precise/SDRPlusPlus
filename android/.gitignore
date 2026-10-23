@@ -1,12 +1,41 @@
-.cxx
-.externalNativeBuild
+# Gradle & Android Studio
+.gradle/
 build/
+*/build/
 *.iml
-
-.idea
-.gradle
+.idea/
 local.properties
+.DS_Store
 
-# Android Studio puts a Gradle wrapper here, that we don't want:
-gradle/
-gradlew*
+# C++ / NDK native build caches
+.cxx/
+*/.cxx/
+.externalNativeBuild/
+*/.externalNativeBuild/
+
+# Built packages, APKs, bundles, and metadata
+*.apk
+*.aab
+**/debug/
+**/release/
+output-metadata.json
+
+# Keep gradle wrapper jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# C++ / NDK native build caches
+.cxx/
+*/.cxx/
+.externalNativeBuild/
+*/.externalNativeBuild/
+
+# Built packages, APKs, bundles, and metadata
+*.apk
+*.aab
+**/debug/
+**/release/
+output-metadata.json
+
+# Keep gradle wrapper jar
+!gradle/wrapper/gradle-wrapper.jar
+

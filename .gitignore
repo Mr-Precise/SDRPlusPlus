@@ -7,6 +7,8 @@ build/
 *.exe
 *.zip
 *.wav
+*.apk
+*.aab
 .DS_Store
 root_dev/
 root_dev_srv/
