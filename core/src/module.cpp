@@ -32,6 +32,17 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
     mod.end = (void (*)())GetProcAddress(mod.handle, "_END_");
 #else
     mod.handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_LOCAL);
+#ifdef __ANDROID__
+    if (mod.handle == NULL) {
+        if (path.rfind("lib", 0) != 0) {
+            std::string alt = "lib" + path;
+            mod.handle = dlopen(alt.c_str(), RTLD_LAZY | RTLD_LOCAL);
+        } else if (path.size() > 3) {
+            std::string alt = path.substr(3);
+            mod.handle = dlopen(alt.c_str(), RTLD_LAZY | RTLD_LOCAL);
+        }
+    }
+#endif
     if (mod.handle == NULL) {
         flog::error("Couldn't load {0}: {1}", path, dlerror());
         mod.handle = NULL;

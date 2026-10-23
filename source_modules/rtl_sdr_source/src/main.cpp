@@ -10,6 +10,9 @@
 
 #ifdef __ANDROID__
 #include <android_backend.h>
+#ifndef HAVE_RTLSDR_OPEN_SYS_DEV
+#define rtlsdr_open_sys_dev rtlsdr_open_fd
+#endif
 #endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())

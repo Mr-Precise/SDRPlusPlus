@@ -1,4 +1,4 @@
-#include <backend.h>log
+#include <backend.h>
 #include "android_backend.h"
 #include <core.h>
 #include <gui/gui.h>
@@ -414,6 +414,7 @@ namespace backend {
     };
 
     const std::vector<DevVIDPID> RTL_SDR_VIDPIDS = {
+        { 0x1209, 0x2832 },
         { 0x0bda, 0x2832 },
         { 0x0bda, 0x2838 },
         { 0x0413, 0x6680 },
@@ -482,7 +483,10 @@ extern "C" {
         // Call main
         char* rootpath = new char[appdir.size() + 1];
         strcpy(rootpath, appdir.c_str());
-        char* dummy[] = { "", "-r", rootpath };
+        char arg0[] = "";
+        char arg1[] = "-r";
+        char* dummy[] = { arg0, arg1, rootpath };
         sdrpp_main(3, dummy);
+        delete[] rootpath;
     }
 }
