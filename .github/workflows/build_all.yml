@@ -545,7 +545,7 @@ jobs:
 
         - name: Fetch container
           working-directory: ${{runner.workspace}}
-          run: git clone https://github.com/AlexandreRouma/android-sdr-kit
+          run: git clone https://github.com/Mr-Precise/android-sdr-kit
         
         - name: Build container
           working-directory: ${{runner.workspace}}/android-sdr-kit
@@ -554,15 +554,24 @@ jobs:
         - name: Build
           run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus android-sdr-kit /bin/bash -l -c "cd /root/SDRPlusPlus/android && chmod +x ./gradlew && ./gradlew --info assembleDebug"
 
-        - name: Recover APK
+        - name: Recover APKs
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/app-universal-debug.apk ./sdrpp.apk
+          run: |
+            mkdir -p apks_raw
+            docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/ apks_raw/
+            mkdir -p sdrpp_android
+            cp apks_raw/debug/app-universal-debug.apk sdrpp_android/sdrpp_android_universal.apk
+            cp apks_raw/debug/app-universal-debug.apk sdrpp_android/sdrpp.apk
+            cp apks_raw/debug/app-arm64-v8a-debug.apk sdrpp_android/sdrpp_android_arm64-v8a.apk
+            cp apks_raw/debug/app-armeabi-v7a-debug.apk sdrpp_android/sdrpp_android_armeabi-v7a.apk
+            cp apks_raw/debug/app-x86-debug.apk sdrpp_android/sdrpp_android_x86.apk
+            cp apks_raw/debug/app-x86_64-debug.apk sdrpp_android/sdrpp_android_x86_64.apk
 
-        - name: Save APK
+        - name: Save APKs
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_android
-              path: ${{runner.workspace}}/sdrpp.apk
+              path: ${{runner.workspace}}/sdrpp_android/
 
     create_full_archive:
         needs: [
@@ -611,7 +620,7 @@ jobs:
             mv sdrpp_ubuntu_noble_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_noble_aarch64.deb &&
             mv sdrpp_ubuntu_resolute_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_resolute_amd64.deb &&
             mv sdrpp_ubuntu_resolute_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_resolute_aarch64.deb &&
-            mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
+            cp sdrpp_android/*.apk sdrpp_all/
 
         - uses: actions/upload-artifact@v4
           with:

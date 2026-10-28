@@ -31,7 +31,7 @@ val ndkVersionConfigured: String? = run {
             localPropsFile.inputStream().use { load(it) }
         }
     }
-    localProps.getProperty("ndk.version") ?: "26.1.10909125"
+    localProps.getProperty("ndk.version") ?: System.getenv("ANDROID_NDK_VERSION") ?: "26.1.10909125"
 }
 
 val targetAbis: List<String> = run {
