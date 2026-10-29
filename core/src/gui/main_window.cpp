@@ -1,3 +1,6 @@
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <gui/main_window.h>
 #include <gui/gui.h>
 #include "imgui.h"
@@ -484,7 +487,7 @@ void MainWindow::draw() {
             ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
         }
 
-        ImGui::SetCursorPosY(std::max(ImGui::GetCursorPosY(), origY + (38.0f * style::uiScale)));
+        ImGui::SetCursorPosY(std::max<float>(ImGui::GetCursorPosY(), origY + (38.0f * style::uiScale)));
     }
 
     if (showCredits && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
