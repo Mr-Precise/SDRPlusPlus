@@ -27,6 +27,7 @@
 #include <gui/colormaps.h>
 #include <gui/widgets/snr_meter.h>
 #include <gui/tuner.h>
+#include <version.h>
 
 void MainWindow::init() {
     LoadingScreen::show("Initializing UI");
@@ -329,107 +330,164 @@ void MainWindow::draw() {
         core::configManager.release(true);
     }
 
-    // To Bar
-    // ImGui::BeginChild("TopBarChild", ImVec2(0, 49.0f * style::uiScale), false, ImGuiWindowFlags_HorizontalScrollbar);
+    // Top Bar
+    ImVec2 winSize = ImGui::GetWindowSize();
+    bool isTwoRow = (winSize.y > winSize.x) || (winSize.x < 550.0f * style::uiScale);
+
     ImVec2 btnSize(30 * style::uiScale, 30 * style::uiScale);
-    ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
-    if (ImGui::ImageButton(icons::MENU, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol) || ImGui::IsKeyPressed(ImGuiKey_Menu, false)) {
-        showMenu = !showMenu;
-        core::configManager.acquire();
-        core::configManager.conf["showMenu"] = showMenu;
-        core::configManager.release(true);
-    }
-    ImGui::PopID();
 
-    ImGui::SameLine();
-
-    bool tmpPlaySate = playing;
-    if (playButtonLocked && !tmpPlaySate) { style::beginDisabled(); }
-    if (playing) {
-        ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
-        if (ImGui::ImageButton(icons::STOP, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol) || ImGui::IsKeyPressed(ImGuiKey_End, false)) {
-            setPlayState(false);
+    auto drawMenuBtn = [&]() {
+        ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
+        if (ImGui::ImageButton(icons::MENU, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol) || ImGui::IsKeyPressed(ImGuiKey_Menu, false)) {
+            showMenu = !showMenu;
+            core::configManager.acquire();
+            core::configManager.conf["showMenu"] = showMenu;
+            core::configManager.release(true);
         }
         ImGui::PopID();
-    }
-    else { // TODO: Might need to check if there even is a device
-        ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
-        if (ImGui::ImageButton(icons::PLAY, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol) || ImGui::IsKeyPressed(ImGuiKey_End, false)) {
+    };
+
+    auto drawPlayBtn = [&]() {
+        bool tmpPlaySate = playing;
+        if (playButtonLocked && !tmpPlaySate) { style::beginDisabled(); }
+        if (playing) {
+            ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
+            if (ImGui::ImageButton(icons::STOP, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol) || ImGui::IsKeyPressed(ImGuiKey_End, false)) {
+                setPlayState(false);
+            }
+            ImGui::PopID();
+        }
+        else { // TODO: Might need to check if there even is a device
+            ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
+            if (ImGui::ImageButton(icons::PLAY, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol) || ImGui::IsKeyPressed(ImGuiKey_End, false)) {
+                setPlayState(true);
+            }
+            ImGui::PopID();
+        }
+        if (playButtonLocked && !tmpPlaySate) { style::endDisabled(); }
+
+        // Handle auto-start
+        if (autostart) {
+            autostart = false;
             setPlayState(true);
         }
-        ImGui::PopID();
-    }
-    if (playButtonLocked && !tmpPlaySate) { style::endDisabled(); }
+    };
 
-    // Handle auto-start
-    if (autostart) {
-        autostart = false;
-        setPlayState(true);
-    }
-
-    ImGui::SameLine();
-    float origY = ImGui::GetCursorPosY();
-
-    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 248 * style::uiScale, btnSize.x, 5, true);
-
-    ImGui::SameLine();
-
-    ImGui::SetCursorPosY(origY);
-    gui::freqSelect.draw();
-
-    ImGui::SameLine();
-
-    ImGui::SetCursorPosY(origY);
-    if (tuningMode == tuner::TUNER_MODE_CENTER) {
-        ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
-        if (ImGui::ImageButton(icons::CENTER_TUNING, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol)) {
-            tuningMode = tuner::TUNER_MODE_NORMAL;
-            gui::waterfall.VFOMoveSingleClick = false;
-            core::configManager.acquire();
-            core::configManager.conf["centerTuning"] = false;
-            core::configManager.release(true);
+    auto drawTuningBtn = [&]() {
+        if (tuningMode == tuner::TUNER_MODE_CENTER) {
+            ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
+            if (ImGui::ImageButton(icons::CENTER_TUNING, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol)) {
+                tuningMode = tuner::TUNER_MODE_NORMAL;
+                gui::waterfall.VFOMoveSingleClick = false;
+                core::configManager.acquire();
+                core::configManager.conf["centerTuning"] = false;
+                core::configManager.release(true);
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
-    }
-    else { // TODO: Might need to check if there even is a device
-        ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
-        if (ImGui::ImageButton(icons::NORMAL_TUNING, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol)) {
-            tuningMode = tuner::TUNER_MODE_CENTER;
-            gui::waterfall.VFOMoveSingleClick = true;
-            tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
-            core::configManager.acquire();
-            core::configManager.conf["centerTuning"] = true;
-            core::configManager.release(true);
+        else { // TODO: Might need to check if there even is a device
+            ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
+            if (ImGui::ImageButton(icons::NORMAL_TUNING, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5, ImVec4(0, 0, 0, 0), textCol)) {
+                tuningMode = tuner::TUNER_MODE_CENTER;
+                gui::waterfall.VFOMoveSingleClick = true;
+                tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
+                core::configManager.acquire();
+                core::configManager.conf["centerTuning"] = true;
+                core::configManager.release(true);
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
+    };
+
+    if (isTwoRow) {
+        // === PORTRAIT / NARROW: TWO-ROW SANDWICH ===
+        float row1_Y = ImGui::GetCursorPosY();
+        float rightMargin = 12.0f * style::uiScale;
+
+        // Row 1: [Menu] [Play] [Tuning] [Volume Slider] [SNR Meter]
+        drawMenuBtn();
+
+        ImGui::SameLine();
+        drawPlayBtn();
+
+        ImGui::SameLine();
+        ImGui::SetCursorPosY(row1_Y);
+        drawTuningBtn();
+
+        ImGui::SameLine();
+        float curX = ImGui::GetCursorPosX();
+        float row1Avail = winSize.x - curX - rightMargin;
+
+        float volWidthPortrait = std::clamp<float>(row1Avail * 0.52f, 100.0f * style::uiScale, 200.0f * style::uiScale);
+        if (row1Avail < 170.0f * style::uiScale) {
+            volWidthPortrait = std::max<float>(80.0f * style::uiScale, row1Avail);
+        }
+        sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", volWidthPortrait, btnSize.x, 5, true);
+
+        ImGui::SameLine();
+        float afterVolX = ImGui::GetCursorPosX();
+        float availSNR = winSize.x - afterVolX - rightMargin;
+        if (availSNR >= 50.0f * style::uiScale) {
+            int snrWidth = std::clamp<int>(availSNR, 50.0f * style::uiScale, 200.0f * style::uiScale);
+            int snrPos = std::max<int>(winSize.x - (snrWidth + rightMargin), afterVolX);
+            ImGui::SetCursorPosX(snrPos);
+            ImGui::SetCursorPosY(row1_Y + (5.0f * style::uiScale));
+            ImGui::SetNextItemWidth(snrWidth);
+            ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
+        }
+
+        // Row 2: Frequency Selector (dedicated row)
+        float row2_Y = row1_Y + (36.0f * style::uiScale);
+        ImGui::SetCursorPosX(10.0f * style::uiScale);
+        ImGui::SetCursorPosY(row2_Y);
+        gui::freqSelect.draw();
+
+        ImGui::SetCursorPosY(row2_Y + (44.0f * style::uiScale));
+    }
+    else {
+        // === LANDSCAPE / WIDE: CLASSIC 1-ROW ===
+        float origY = ImGui::GetCursorPosY();
+        float rightMargin = 15.0f * style::uiScale;
+
+        drawMenuBtn();
+
+        ImGui::SameLine();
+        drawPlayBtn();
+
+        ImGui::SameLine();
+        float minOtherWidth = (btnSize.x * 3) + (360.0f * style::uiScale) + (ImGui::GetStyle().ItemSpacing.x * 5) + rightMargin;
+        float freeWidth = std::max<float>(0.0f, winSize.x - minOtherWidth);
+        float volWidth = std::clamp<float>(freeWidth * 0.55f, 180.0f * style::uiScale, 248.0f * style::uiScale);
+        if (freeWidth >= 348.0f * style::uiScale) {
+            volWidth = 248.0f * style::uiScale;
+        }
+
+        sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", volWidth, btnSize.x, 5, true);
+
+        ImGui::SameLine();
+        ImGui::SetCursorPosY(origY);
+        gui::freqSelect.draw();
+
+        ImGui::SameLine();
+        ImGui::SetCursorPosY(origY);
+        drawTuningBtn();
+
+        ImGui::SameLine();
+        float curX = ImGui::GetCursorPosX();
+        float spaceForSNR = winSize.x - curX - rightMargin;
+        if (spaceForSNR >= 50.0f * style::uiScale) {
+            int snrWidth = std::clamp<int>(spaceForSNR, 50.0f * style::uiScale, 300.0f * style::uiScale);
+            int snrPos = std::max<int>(winSize.x - (snrWidth + rightMargin), curX);
+            ImGui::SetCursorPosX(snrPos);
+            ImGui::SetCursorPosY(origY + (5.0f * style::uiScale));
+            ImGui::SetNextItemWidth(snrWidth);
+            ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
+        }
+
+        ImGui::SetCursorPosY(std::max(ImGui::GetCursorPosY(), origY + (38.0f * style::uiScale)));
     }
 
-    ImGui::SameLine();
-
-    int snrOffset = 87.0f * style::uiScale;
-    int snrWidth = std::clamp<int>(ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - snrOffset, 100.0f * style::uiScale, 300.0f * style::uiScale);
-    int snrPos = std::max<int>(ImGui::GetWindowSize().x - (snrWidth + snrOffset), ImGui::GetCursorPosX());
-
-    ImGui::SetCursorPosX(snrPos);
-    ImGui::SetCursorPosY(origY + (5.0f * style::uiScale));
-    ImGui::SetNextItemWidth(snrWidth);
-    ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
-
-    // Note: this is what makes the vertical size correct, needs to be fixed
-    ImGui::SameLine();
-
-    // ImGui::EndChild();
-
-    // Logo button
-    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (48 * style::uiScale));
-    ImGui::SetCursorPosY(10.0f * style::uiScale);
-    if (ImGui::ImageButton(icons::LOGO, ImVec2(32 * style::uiScale, 32 * style::uiScale), ImVec2(0, 0), ImVec2(1, 1), 0)) {
-        showCredits = true;
-    }
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-        showCredits = false;
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    if (showCredits && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         showCredits = false;
     }
 
@@ -437,7 +495,7 @@ void MainWindow::draw() {
     lockWaterfallControls = showCredits;
 
     // Handle menu resize
-    ImVec2 winSize = ImGui::GetWindowSize();
+    winSize = ImGui::GetWindowSize();
     ImVec2 mousePos = ImGui::GetMousePos();
     if (!lockWaterfallControls && showMenu) {
         float curY = ImGui::GetCursorPosY();
@@ -525,6 +583,21 @@ void MainWindow::draw() {
             ImGui::Checkbox("WF Single Click", &gui::waterfall.VFOMoveSingleClick);
             ImGui::Checkbox("Lock Menu Order", &gui::menu.locked);
 
+            ImGui::Spacing();
+        }
+
+        if (ImGui::CollapsingHeader("About & Credits")) {
+            float imgBtnSize = 32.0f * style::uiScale;
+            if (ImGui::ImageButton(icons::LOGO, ImVec2(imgBtnSize, imgBtnSize), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+                showCredits = true;
+            }
+            ImGui::SameLine();
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (7.0f * style::uiScale));
+            ImGui::Text("SDR++ v" VERSION_STR);
+
+            if (ImGui::Button("Show Credits", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+                showCredits = true;
+            }
             ImGui::Spacing();
         }
 
@@ -665,7 +738,7 @@ void MainWindow::draw() {
     ImGui::End();
 
     if (showCredits) {
-        credits::show();
+        credits::show(&showCredits);
     }
 
     if (demoWindow) {

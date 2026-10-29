@@ -2,5 +2,5 @@
 
 namespace credits {
     void init();
-    void show();
+    void show(bool* open = nullptr);
 }
