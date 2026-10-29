@@ -561,7 +561,6 @@ jobs:
             docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/ apks_raw/
             mkdir -p sdrpp_android
             cp apks_raw/debug/app-universal-debug.apk sdrpp_android/sdrpp_android_universal.apk
-            cp apks_raw/debug/app-universal-debug.apk sdrpp_android/sdrpp.apk
             cp apks_raw/debug/app-arm64-v8a-debug.apk sdrpp_android/sdrpp_android_arm64-v8a.apk
             cp apks_raw/debug/app-armeabi-v7a-debug.apk sdrpp_android/sdrpp_android_armeabi-v7a.apk
             cp apks_raw/debug/app-x86-debug.apk sdrpp_android/sdrpp_android_x86.apk
