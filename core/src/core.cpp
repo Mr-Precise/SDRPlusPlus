@@ -299,7 +299,7 @@ int sdrpp_main(int argc, char* argv[]) {
     core::configManager.conf["modules"][modCount++] = "libairspyhf_source.so";
     core::configManager.conf["modules"][modCount++] = "libhackrf_source.so";
     core::configManager.conf["modules"][modCount++] = "libhermes_source.so";
-    // core::configManager.conf["modules"][modCount++] = "libhydrasdr_source.so";
+    core::configManager.conf["modules"][modCount++] = "libhydrasdr_source.so";
     core::configManager.conf["modules"][modCount++] = "libplutosdr_source.so";
     core::configManager.conf["modules"][modCount++] = "librfspace_source.so";
     core::configManager.conf["modules"][modCount++] = "librtl_sdr_source.so";

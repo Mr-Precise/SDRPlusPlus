@@ -85,7 +85,7 @@ android {
                     "-DOPT_BUILD_M17_DECODER=ON",
                     "-DOPT_BUILD_PLUTOSDR_SOURCE=ON",
                     "-DOPT_BUILD_AUDIO_SOURCE=OFF",
-                    "-DOPT_BUILD_HYDRASDR_SOURCE=OFF",
+                    "-DOPT_BUILD_HYDRASDR_SOURCE=ON",
                     "-DSDR_KIT_ROOT=$sdrKitRootPath"
                 )
             }
