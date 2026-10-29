@@ -9,6 +9,7 @@
 #include <gui/style.h>
 #include <utils/optionlist.h>
 #include <algorithm>
+#include <cmath>
 
 namespace displaymenu {
     bool showWaterfall;
@@ -106,10 +107,28 @@ namespace displaymenu {
 
         // Define and load UI scales
         uiScales.define(1.0f, "100%", 1.0f);
+        uiScales.define(1.25f, "125%", 1.25f);
+        uiScales.define(1.5f, "150%", 1.5f);
+        uiScales.define(1.75f, "175%", 1.75f);
         uiScales.define(2.0f, "200%", 2.0f);
+        uiScales.define(2.5f, "250%", 2.5f);
         uiScales.define(3.0f, "300%", 3.0f);
         uiScales.define(4.0f, "400%", 4.0f);
-        uiScaleId = uiScales.valueId(style::uiScale);
+        if (uiScales.valueExists(style::uiScale)) {
+            uiScaleId = uiScales.valueId(style::uiScale);
+        }
+        else {
+            float minDiff = 1e9f;
+            int bestId = 0;
+            for (int i = 0; i < uiScales.size(); i++) {
+                float diff = std::abs(uiScales.value(i) - style::uiScale);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    bestId = i;
+                }
+            }
+            uiScaleId = bestId;
+        }
     }
 
     void setWaterfallShown(bool shown) {

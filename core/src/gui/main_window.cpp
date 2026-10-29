@@ -335,7 +335,7 @@ void MainWindow::draw() {
 
     // Top Bar
     ImVec2 winSize = ImGui::GetWindowSize();
-    bool isTwoRow = (winSize.y > winSize.x) || (winSize.x < 550.0f * style::uiScale);
+    bool isTwoRow = (winSize.y > winSize.x) || (winSize.x < 620.0f * style::uiScale);
 
     ImVec2 btnSize(30 * style::uiScale, 30 * style::uiScale);
 
@@ -460,7 +460,9 @@ void MainWindow::draw() {
         ImGui::SameLine();
         float minOtherWidth = (btnSize.x * 3) + (360.0f * style::uiScale) + (ImGui::GetStyle().ItemSpacing.x * 5) + rightMargin;
         float freeWidth = std::max<float>(0.0f, winSize.x - minOtherWidth);
-        float volWidth = std::clamp<float>(freeWidth * 0.55f, 180.0f * style::uiScale, 248.0f * style::uiScale);
+        float maxVolForSNR = std::max<float>(80.0f * style::uiScale, freeWidth - (60.0f * style::uiScale));
+        float volWidth = std::clamp<float>(freeWidth * 0.55f, 80.0f * style::uiScale, 248.0f * style::uiScale);
+        volWidth = std::min<float>(volWidth, maxVolForSNR);
         if (freeWidth >= 348.0f * style::uiScale) {
             volWidth = 248.0f * style::uiScale;
         }
